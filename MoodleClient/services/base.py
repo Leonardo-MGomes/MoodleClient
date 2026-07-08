@@ -40,17 +40,16 @@ def _make_decorator(ignore: list[str] | None = None):
             bound_args.apply_defaults()
 
             payload = {}
-            params_to_remove = []
 
             for param_name, value in bound_args.arguments.items():
                 if param_name in ignore_set:
                     continue
                 if value is not None:
                     payload[param_name.replace("_", "")] = value
-                    params_to_remove.append(param_name)
 
-            for param in params_to_remove:
-                del bound_args.arguments[param]
+                # This is done to "use" the parameters so no split-source bugs can happen
+                bound_args.arguments[param_name] = None
+
             bound_args.arguments["data"] = payload
 
             return await func(**bound_args.arguments)
