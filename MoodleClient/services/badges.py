@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class BadgesService(BaseService):
+    # https://github.com/moodle/moodle/blob/main/public/badges/classes/external.php#L56
     @auto_moodle_params
     async def get_user_badges(
         self,
