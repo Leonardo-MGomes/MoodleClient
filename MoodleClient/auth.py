@@ -1,9 +1,10 @@
 import logging
 from dataclasses import dataclass
 
-from httpx import AsyncClient
+from httpx import AsyncClient, HTTPStatusError, RequestError
 
 from MoodleClient.config import DEFAULT_CONFIG, AppConfig
+from MoodleClient.exceptions import MoodleAuthError, MoodleNetworkError
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,9 @@ class MoodleTokenAuth:
     @property
     def token(self):
         if self.token_data is None:
-            raise Exception("No token available.")
+            raise MoodleAuthError(
+                "No Moodle token is available. Please authenticate first."
+            )
         return self.token_data.token
 
     @classmethod
@@ -67,7 +70,7 @@ class MoodleTokenAuth:
     async def authenticate(self) -> MoodleTokens:
         if self.credentials is None:
             logger.error("No credentials provided for authentication")
-            raise Exception("No credentials Provided.")
+            raise MoodleAuthError("No credentials provided for authentication.")
 
         logger.info("Attempting to authenticate with Moodle...")
         data = {
@@ -83,14 +86,40 @@ class MoodleTokenAuth:
             response.raise_for_status()
             response_content = response.json()
 
+            token = response_content.get("token")
+            private_token = response_content.get("privatetoken")
+
+            if not token:
+                logger.error(
+                    f"Moodle authentication response missing 'token' key: {response_content}"
+                )
+                raise MoodleAuthError(
+                    f"Moodle authentication response missing 'token' key: {response_content}"
+                )
+
             token_data = MoodleTokens(
-                token=response_content["token"],
-                private_token=response_content["privatetoken"],
+                token=token,
+                private_token=private_token,
             )
 
             self.token_data = token_data
             logger.info("Successfully authenticated with Moodle.")
             return token_data
-        except Exception as e:
-            logger.error(f"Authentication failed: {e}")
+
+        except HTTPStatusError as e:
+            logger.error(
+                f"Authentication failed with HTTP {e.response.status_code}: {e}"
+            )
+            raise MoodleAuthError(
+                f"Moodle authentication failed with HTTP {e.response.status_code}"
+            ) from e
+        except RequestError as e:
+            logger.error(f"Network error during authentication: {e}")
+            raise MoodleNetworkError(f"Network error during authentication: {e}") from e
+        except MoodleAuthError:
             raise
+        except Exception as e:
+            logger.error(f"Unexpected failure during authentication: {e}")
+            raise MoodleAuthError(
+                f"Unexpected failure during authentication: {e}"
+            ) from e

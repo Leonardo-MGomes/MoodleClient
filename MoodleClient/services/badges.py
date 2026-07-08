@@ -7,8 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class BadgesService(BaseService):
-    async def get_user_badges(self):
-        logger.debug("Fetching user badges...")
+    async def get_user_badges(self) -> BadgeResponse:
+        logger.info("Fetching user badges...")
         response = await self.session.request("core_badges_get_user_badges")
-        badge_response = BadgeResponse.model_validate(response.json())
-        return badge_response
+        return self._parse_response(response, BadgeResponse)

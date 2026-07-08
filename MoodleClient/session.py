@@ -1,10 +1,12 @@
+import asyncio
 import logging
 from typing import Any
 
-from httpx import AsyncClient, Response
+from httpx import AsyncClient, HTTPStatusError, RequestError, Response
 
 from .auth import MoodleCredentials, MoodleTokenAuth, MoodleTokens
 from .config import DEFAULT_CONFIG, AppConfig
+from .exceptions import MoodleApiError, MoodleNetworkError
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,7 @@ class MoodleSession:
         function: str,
         extra_params: dict[str, Any] | None = None,
         rest_format: str = "json",
+        max_retries: int = 3,
     ) -> Response:
         logger.debug(
             f"Calling Moodle API function: {function} with params: {extra_params}"
@@ -58,16 +61,62 @@ class MoodleSession:
         }
         data.update(extra_params if extra_params else {})
 
-        try:
-            response = await self.http.post(
-                f"{self.base_url}/webservice/rest/server.php",
-                data=data,
-            )
-            logger.info(f"Moodle API response for {function}: {response.status_code}")
-            return response
-        except Exception as e:
-            logger.error(f"Moodle API request failed for {function}: {e}")
-            raise
+        for attempt in range(max_retries):
+            try:
+                response = await self.http.post(
+                    f"{self.base_url}/webservice/rest/server.php",
+                    data=data,
+                )
+                response.raise_for_status()
+                logger.debug(
+                    f"Moodle API response for {function}: {response.status_code}"
+                )
+                return response
+
+            except RequestError as e:
+                # Handle timeouts and connection errors
+                if attempt == max_retries - 1:
+                    logger.error(
+                        f"Moodle API request failed after {max_retries} attempts: {e}"
+                    )
+                    raise MoodleNetworkError(
+                        f"Network error occurred while calling {function}: {e}"
+                    ) from e
+
+                wait_time = 2**attempt
+                logger.warning(
+                    f"Network error on attempt {attempt + 1}. Retrying in {wait_time}s... Error: {e}"
+                )
+                await asyncio.sleep(wait_time)
+
+            except HTTPStatusError as e:
+                # Only retry on transient server errors (502, 503, 504)
+                if (
+                    e.response.status_code in (502, 503, 504)
+                    and attempt < max_retries - 1
+                ):
+                    wait_time = 2**attempt
+                    logger.warning(
+                        f"Server error {e.response.status_code} on attempt {attempt + 1}. Retrying in {wait_time}s..."
+                    )
+                    await asyncio.sleep(wait_time)
+                    continue
+
+                logger.error(
+                    f"Moodle API returned HTTP {e.response.status_code} for {function}"
+                )
+                raise MoodleApiError(
+                    message=f"Moodle API returned HTTP {e.response.status_code} for {function}",
+                    status_code=e.response.status_code,
+                    response_body=e.response.text,
+                ) from e
+
+            except Exception as e:
+                # Catch-all for unexpected errors to ensure they are at least logged and wrapped
+                logger.error(
+                    f"Unexpected error during Moodle API request for {function}: {e}"
+                )
+                raise
 
     async def close(self):
         await self.http.aclose()
