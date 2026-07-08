@@ -44,6 +44,28 @@ class MoodleSession:
         session.moodle_auth = moodle_auth
         return session
 
+    def _flatten_params(
+        self, params: dict[str, Any], parent_key: str = ""
+    ) -> dict[str, Any]:
+        flat: dict[str, Any] = {}
+
+        for key, value in params.items():
+            full_key = f"{parent_key}[{key}]" if parent_key else key
+
+            if isinstance(value, dict):
+                flat.update(self._flatten_params(value, full_key))
+            elif isinstance(value, list):
+                for i, item in enumerate(value):
+                    indexed_key = f"{full_key}[{i}]"
+                    if isinstance(item, (dict, list)):
+                        flat.update(self._flatten_params(item, indexed_key))
+                    else:
+                        flat[indexed_key] = item
+            else:
+                flat[full_key] = value
+
+        return flat
+
     async def request(
         self,
         function: str,
@@ -59,7 +81,7 @@ class MoodleSession:
             "wsfunction": function,
             "moodlewsrestformat": rest_format,
         }
-        data.update(extra_params if extra_params else {})
+        data.update(self._flatten_params(extra_params) if extra_params else {})
 
         for attempt in range(max_retries):
             try:
