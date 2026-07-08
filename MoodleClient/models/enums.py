@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 
 
 class BadgeType(IntEnum):
@@ -12,3 +12,20 @@ class BadgeStatus(IntEnum):
     INACTIVE_LOCKED = 2
     ACTIVE_LOCKED = 3
     ARCHIVED = 4
+
+
+class TextFormat(IntEnum):
+    MOODLE = 0
+    HTML = 1
+    PLAIN = 2
+    MARKDOWN = 4
+
+
+class CategoryCriteriaKey(StrEnum):
+    ID = "id"
+    IDS = "ids"
+    NAME = "name"
+    PARENT = "parent"
+    IDNUMBER = "idnumber"
+    VISIBLE = "visible"
+    THEME = "theme"
