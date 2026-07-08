@@ -1,9 +1,12 @@
+import logging
 from typing import Any
 
 from httpx import AsyncClient, Response
 
 from .auth import MoodleCredentials, MoodleTokenAuth, MoodleTokens
 from .config import DEFAULT_CONFIG, AppConfig
+
+logger = logging.getLogger(__name__)
 
 
 class MoodleSession:
@@ -45,6 +48,9 @@ class MoodleSession:
         extra_params: dict[str, Any] | None = None,
         rest_format: str = "json",
     ) -> Response:
+        logger.debug(
+            f"Calling Moodle API function: {function} with params: {extra_params}"
+        )
         data = {
             "wstoken": self.moodle_auth.token,
             "wsfunction": function,
@@ -52,12 +58,16 @@ class MoodleSession:
         }
         data.update(extra_params if extra_params else {})
 
-        response = await self.http.post(
-            f"{self.base_url}/webservice/rest/server.php",
-            data=data,
-        )
-
-        return response
+        try:
+            response = await self.http.post(
+                f"{self.base_url}/webservice/rest/server.php",
+                data=data,
+            )
+            logger.info(f"Moodle API response for {function}: {response.status_code}")
+            return response
+        except Exception as e:
+            logger.error(f"Moodle API request failed for {function}: {e}")
+            raise
 
     async def close(self):
         await self.http.aclose()
