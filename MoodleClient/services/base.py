@@ -45,6 +45,9 @@ def _make_decorator(ignore: list[str] | None = None):
                 if param_name in ignore_set:
                     continue
                 if value is not None:
+                    if isinstance(value, bool):
+                        # Moodle strictly expects booleans as 1 and 0
+                        value = 1 if value else 0
                     payload[param_name.replace("_", "")] = value
 
                 # This is done to "use" the parameters so no split-source bugs can happen
