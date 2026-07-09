@@ -6,7 +6,8 @@ from .common import HashStr, MoodleDateTime, MoodleWarnings
 from .enums import BadgeStatus, BadgeType
 
 
-# https://github.com/moodle/moodle/blob/main/public/badges/classes/external/user_badge_exporter.php#L43
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/user_badge_exporter.php#L43
+# MOODLE_502_STABLE user_badge_exporter
 class Badge(BaseModel):
     id: int | None = None
     name: str
@@ -42,7 +43,8 @@ class Badge(BaseModel):
     imagecaption: str | None = None
 
 
-# https://github.com/moodle/moodle/blob/main/public/badges/classes/external.php#L143
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external.php#L143
+# MOODLE_502_STABLE get_user_badges_returns
 class BadgeStructure(BaseModel):
     badges: list[Badge]
     warnings: list[MoodleWarnings]

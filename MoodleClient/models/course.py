@@ -18,7 +18,8 @@ class CheckUpdatesData(BaseModel):
     updates: list[CheckUpdatesUpdates]
 
 
-# https://github.com/moodle/moodle/blob/main/public/course/externallib.php#L3600
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/course/externallib.php#L3600
+# MOODLE_502_STABLE check_updates_returns
 class CheckUpdatesStructure(BaseModel):
     instances: list[CheckUpdatesData]
     warnings: list[MoodleWarnings]
@@ -42,6 +43,7 @@ class Category(BaseModel):
     theme: str | None = None
 
 
-# https://github.com/moodle/moodle/blob/main/public/course/externallib.php#L2165
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/course/externallib.php#L2165
+# MOODLE_502_STABLE get_categories_returns
 class GetCategoriesStructure(RootModel[list[Category]]):
     pass

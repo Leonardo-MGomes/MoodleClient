@@ -22,7 +22,8 @@ class CategoryCriteria(TypedDict):
 
 
 class CourseService(BaseService):
-    # https://github.com/moodle/moodle/blob/main/public/course/externallib.php#L3506
+    # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/course/externallib.php#L3506
+    # MOODLE_502_STABLE check_updates_parameters
     @auto_moodle_params
     async def check_updates(
         self,
@@ -37,7 +38,8 @@ class CourseService(BaseService):
         )
         return self._parse_response(response, CheckUpdatesStructure)
 
-    # https://github.com/moodle/moodle/blob/main/public/course/externallib.php#L1886
+    # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/course/externallib.php#L1886
+    # MOODLE_502_STABLE get_categories_parameters
     @auto_moodle_params
     async def get_categories(
         self,
