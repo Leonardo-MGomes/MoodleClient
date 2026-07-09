@@ -25,6 +25,12 @@ class MoodleSession:
         )
         self.moodle_auth = moodle_auth
 
+    async def __aenter__(self) -> "MoodleSession":
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        await self.close()
+
     @classmethod
     def from_credentials(
         cls,
