@@ -77,3 +77,10 @@ class UserBadge(BaseModel):
 class GetUserBadgesStructure(BaseModel):
     badges: list[UserBadge]
     warnings: list[MoodleWarnings]
+
+
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/get_user_badge_by_hash.php#L106
+# MOODLE_502_STABLE execute_returns
+class GetUserBadgeByHashStructure(BaseModel):
+    badge: list[UserBadge]
+    warnings: list[MoodleWarnings]
