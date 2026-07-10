@@ -43,6 +43,8 @@ class Badge(BaseModel):
     imagecaption: str | None = None
 
 
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/get_badge.php#L99
+# MOODLE_502_STABLE execute_returns
 class GetBadgeStructure(BaseModel):
     badge: Badge
     warnings: list[MoodleWarnings]
