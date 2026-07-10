@@ -45,6 +45,6 @@ class Badge(BaseModel):
 
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external.php#L143
 # MOODLE_502_STABLE get_user_badges_returns
-class BadgeStructure(BaseModel):
+class GetUserBadgesStructure(BaseModel):
     badges: list[Badge]
     warnings: list[MoodleWarnings]

@@ -1,6 +1,6 @@
 import logging
 
-from ..models.badges import BadgeStructure
+from ..models.badges import GetUserBadgesStructure
 from .base import BaseService, auto_moodle_params
 
 logger = logging.getLogger(__name__)
@@ -19,9 +19,9 @@ class BadgesService(BaseService):
         search: str | None = None,
         only_public: bool | None = None,
         data: dict | None = None,
-    ) -> BadgeStructure:
+    ) -> GetUserBadgesStructure:
         logger.info("Fetching user badges...")
         response = await self.session.request(
             "core_badges_get_user_badges", extra_params=data
         )
-        return self._parse_response(response, BadgeStructure)
+        return self._parse_response(response, GetUserBadgesStructure)
