@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel, EmailStr, HttpUrl, field_validator
 
 from .common import HashStr, MoodleDateTime, MoodleWarnings
 from .enums import BadgeStatus, BadgeType
@@ -63,6 +63,13 @@ class UserBadge(BaseModel):
     version: str | None = None
     language: str | None = None
     imagecaption: str | None = None
+
+    @field_validator("issuercontact", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, value: str | None) -> str | None:
+        if value == "":
+            return None
+        return value
 
 
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external.php#L143
