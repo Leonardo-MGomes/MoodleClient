@@ -1,6 +1,10 @@
 import logging
 
-from ..models.badges import GetBadgeStructure, GetUserBadgesStructure
+from ..models.badges import (
+    GetBadgeStructure,
+    GetUserBadgeByHashStructure,
+    GetUserBadgesStructure,
+)
 from .base import BaseService, auto_moodle_params
 
 logger = logging.getLogger(__name__)
@@ -35,3 +39,15 @@ class BadgesService(BaseService):
             "core_badges_get_user_badges", extra_params=data
         )
         return self._parse_response(response, GetUserBadgesStructure)
+
+    # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/get_user_badge_by_hash.php#L49
+    # MOODLE_502_STABLE execute_parameters
+    @auto_moodle_params
+    async def get_user_badge_by_hash(
+        self, hash: str, data: dict | None = None
+    ) -> GetUserBadgeByHashStructure:
+        logger.info(f"Fetching User Badge by hash: {hash}")
+        response = await self.session.request(
+            "core_badges_get_user_badge_by_hash", extra_params=data
+        )
+        return self._parse_response(response, GetUserBadgeByHashStructure)
