@@ -1,12 +1,22 @@
 import logging
 
-from ..models.badges import GetUserBadgesStructure
+from ..models.badges import GetBadgeStructure, GetUserBadgesStructure
 from .base import BaseService, auto_moodle_params
 
 logger = logging.getLogger(__name__)
 
 
 class BadgesService(BaseService):
+    # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/get_badge.php#L47
+    # MOODLE_502_STABLE execute_parameters
+    @auto_moodle_params
+    async def get_badge(self, id: int, data: dict | None = None) -> GetBadgeStructure:
+        logger.info(f"Fetching Badge with id: {id}")
+        response = await self.session.request(
+            "core_badges_get_badge", extra_params=data
+        )
+        return self._parse_response(response, GetBadgeStructure)
+
     # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external.php#L56
     # MOODLE_502_STABLE get_user_badges_parameters
     @auto_moodle_params
