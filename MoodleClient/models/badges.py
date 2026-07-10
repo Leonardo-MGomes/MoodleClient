@@ -8,7 +8,7 @@ from .enums import BadgeStatus, BadgeType
 
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/user_badge_exporter.php#L43
 # MOODLE_502_STABLE user_badge_exporter
-class Badge(BaseModel):
+class UserBadge(BaseModel):
     id: int | None = None
     name: str
     description: str | None = None
@@ -46,12 +46,12 @@ class Badge(BaseModel):
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/get_badge.php#L99
 # MOODLE_502_STABLE execute_returns
 class GetBadgeStructure(BaseModel):
-    badge: Badge
+    badge: UserBadge
     warnings: list[MoodleWarnings]
 
 
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external.php#L143
 # MOODLE_502_STABLE get_user_badges_returns
 class GetUserBadgesStructure(BaseModel):
-    badges: list[Badge]
+    badges: list[UserBadge]
     warnings: list[MoodleWarnings]
