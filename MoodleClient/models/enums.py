@@ -29,3 +29,8 @@ class CategoryCriteriaKey(StrEnum):
     IDNUMBER = "idnumber"
     VISIBLE = "visible"
     THEME = "theme"
+
+
+class Homepage(IntEnum):
+    SITE_HOME = 0
+    DASHBOARD = 1
