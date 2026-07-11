@@ -29,3 +29,11 @@ class CategoryCriteriaKey(StrEnum):
     IDNUMBER = "idnumber"
     VISIBLE = "visible"
     THEME = "theme"
+
+
+class Homepage(IntEnum):
+    HOME = 0
+    MY = 1
+    USER = 2
+    MY_COURSES = 3
+    URL = 4
