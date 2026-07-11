@@ -13,9 +13,7 @@ class Function(BaseModel):
 # Belongs to SiteInfo
 class AdvancedFeature(BaseModel):
     name: str
-    value: (
-        bool | int
-    )  # The Moodle source code says "Usually 1 means enabled." which doesn't quite spark a lot of confidence
+    value: bool
 
 
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/webservice/externallib.php#L240
