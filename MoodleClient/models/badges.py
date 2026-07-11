@@ -1,14 +1,36 @@
 from datetime import timedelta
+from typing import Literal
 
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel, EmailStr, HttpUrl, field_validator
 
 from .common import HashStr, MoodleDateTime, MoodleWarnings
 from .enums import BadgeStatus, BadgeType
 
 
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/badgeclass_exporter.php#L39
+# MOODLE_502_STABLE badgeclass_exporter
+class BadgeClass(BaseModel):
+    type: Literal["BadgeClass"] = "BadgeClass"
+    id: HttpUrl  # No, this isn't wrong: https://github.com/moodle/moodle/blob/main/public/lib/badgeslib.php#L540
+    issuer: str | None = None
+    name: str
+    image: HttpUrl
+    description: str
+    hostedUrl: HttpUrl | None = None
+    courseid: int | None = None
+    coursefullname: str | None = None
+
+
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/get_badge.php#L99
+# MOODLE_502_STABLE execute_returns
+class GetBadgeStructure(BaseModel):
+    badge: BadgeClass
+    warnings: list[MoodleWarnings]
+
+
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/user_badge_exporter.php#L43
 # MOODLE_502_STABLE user_badge_exporter
-class Badge(BaseModel):
+class UserBadge(BaseModel):
     id: int | None = None
     name: str
     description: str | None = None
@@ -42,9 +64,23 @@ class Badge(BaseModel):
     language: str | None = None
     imagecaption: str | None = None
 
+    @field_validator("issuercontact", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, value: str | None) -> str | None:
+        if value == "":
+            return None
+        return value
+
 
 # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external.php#L143
 # MOODLE_502_STABLE get_user_badges_returns
-class BadgeStructure(BaseModel):
-    badges: list[Badge]
+class GetUserBadgesStructure(BaseModel):
+    badges: list[UserBadge]
+    warnings: list[MoodleWarnings]
+
+
+# https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/badges/classes/external/get_user_badge_by_hash.php#L106
+# MOODLE_502_STABLE execute_returns
+class GetUserBadgeByHashStructure(BaseModel):
+    badge: list[UserBadge]
     warnings: list[MoodleWarnings]
