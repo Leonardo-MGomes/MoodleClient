@@ -1,13 +1,20 @@
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, BeforeValidator, StringConstraints
+from pydantic import BaseModel, BeforeValidator, HttpUrl, StringConstraints
 
 
 def handle_moodle_zero(value):
     return None if value == 0 else value
 
 
+def handle_moodle_empty_string(value):
+    return None if value == "" else value
+
+
+MoodleRawHttpUrl = Annotated[
+    HttpUrl | None, BeforeValidator(handle_moodle_empty_string)
+]
 MoodleDateTime = Annotated[datetime | None, BeforeValidator(handle_moodle_zero)]
 HashStr = Annotated[str, StringConstraints(pattern=r"^[a-fA-F0-9]+$")]
 

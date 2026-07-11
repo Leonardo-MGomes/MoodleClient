@@ -1,9 +1,7 @@
 import logging
 from typing import TypedDict
 
-from models.course import GetCategoriesStructure
-
-from ..models.course import CheckUpdatesStructure
+from ..models.course import CheckUpdatesStructure, GetCategoriesStructure
 from ..models.enums import CategoryCriteriaKey
 from .base import BaseService, auto_moodle_params
 

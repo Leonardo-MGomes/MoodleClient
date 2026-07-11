@@ -99,6 +99,13 @@ class MoodleSession:
                 logger.debug(
                     f"Moodle API response for {function}: {response.status_code}"
                 )
+                # TODO: Make this robust
+                # This is just so it's caught safely with a Custom error, might need to make it more robust though
+                if "exception" in response.json():
+                    content = response.json()
+                    raise MoodleApiError(
+                        content["message"], response.status_code, content
+                    )
                 return response
 
             except RequestError as e:
