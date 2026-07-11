@@ -32,5 +32,8 @@ class CategoryCriteriaKey(StrEnum):
 
 
 class Homepage(IntEnum):
-    SITE_HOME = 0
-    DASHBOARD = 1
+    HOME = 0
+    MY = 1
+    USER = 2
+    MY_COURSES = 3
+    URL = 4
