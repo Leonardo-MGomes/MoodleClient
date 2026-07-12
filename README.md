@@ -219,28 +219,28 @@ class CourseService(BaseService):
 
 1. **Expose it in `services/__init__.py`:**
    To make the new service accessible to the rest of the application, it must be exposed through the package
-   initialization file before being bound to the main client facade.
+   initialization file. The client automatically registers and loads Services that follow convention.
 
 ```python
 # services/__init__.py
 from .course import CourseService
  ```
 
-2.**Register it on the Facade Client (`client.py`):** Add it as a property on the main `MoodleClient` class.
+2.**Add type hinting to the Client (`client.py`):** Add it as a property on the main `MoodleClient` class for better
+type hinting.
 
 ```python
 # client.py
-from .services import BadgesService, CourseService  # <- Import from services
+from . import services
+from .services.base import BaseService
 from .session import MoodleSession
 
 
 class MoodleClient:
-    badges: BadgesService
-    course: CourseService  # <- Your new Service here
+    badges: services.BadgesService
+    course: services.CourseService  # <- Your new Service here
 
-    def __init__(self, session: MoodleSession):
-        self.badges = BadgesService(session)
-        self.course = CourseService(session)  # Initialize it here (don't forget the session!)
+# Other code
 ```
 
 ### Getting Started with Changes
