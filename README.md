@@ -237,8 +237,8 @@ from .session import MoodleSession
 
 
 class MoodleClient:
-    badges: BadgesService
-    course: CourseService  # <- Your new Service here
+    badges: services.BadgesService
+    course: services.CourseService  # <- Your new Service here
 
 # Other code
 ```
