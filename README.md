@@ -219,7 +219,7 @@ class CourseService(BaseService):
 
 1. **Expose it in `services/__init__.py`:**
    To make the new service accessible to the rest of the application, it must be exposed through the package
-   initialization file. The client Service automatically registers and loads Services that follow convention.
+   initialization file. The client automatically registers and loads Services that follow convention.
 
 ```python
 # services/__init__.py
