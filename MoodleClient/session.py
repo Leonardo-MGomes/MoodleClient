@@ -45,6 +45,7 @@ class MoodleSession:
             http_client=session.http,
             moodle_credentials=moodle_credentials,
             token_data=tokens,
+            app_config=app_config,
         )
 
         session.moodle_auth = moodle_auth
