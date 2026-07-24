@@ -12,7 +12,6 @@ class MoodleError(Exception):
 class MoodleNetworkError(MoodleError):
     """Wraps transport-level errors (timeouts, DNS, etc.)."""
 
-    pass
 
 
 class MoodleApiError(MoodleError):
@@ -32,10 +31,8 @@ class MoodleApiError(MoodleError):
 class MoodleAuthError(MoodleError):
     """For authentication failures or token-related issues."""
 
-    pass
 
 
 class MoodleValidationError(MoodleError):
     """Wraps JSON decoding and Pydantic validation errors."""
 
-    pass

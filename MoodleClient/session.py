@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any
+from typing import Any, Self
 
 from httpx import AsyncClient, HTTPStatusError, RequestError, Response
 
@@ -25,7 +25,7 @@ class MoodleSession:
         )
         self.moodle_auth = moodle_auth
 
-    async def __aenter__(self) -> "MoodleSession":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:

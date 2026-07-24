@@ -1,8 +1,9 @@
 import logging
+from collections.abc import Callable
 from functools import wraps
 from inspect import signature
 from json import JSONDecodeError
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, TypeVar
 
 from httpx import Response
 from pydantic import ValidationError
@@ -67,7 +68,7 @@ class BaseService:
         self.session = session
 
     @staticmethod
-    def _parse_response(response: Response, model: Type[T]) -> T:
+    def _parse_response(response: Response, model: type[T]) -> T:
         try:
             logger.debug("Attempting API data parsing to JSON...")
             data = response.json()

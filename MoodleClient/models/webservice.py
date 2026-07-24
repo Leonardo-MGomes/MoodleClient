@@ -1,4 +1,4 @@
-from pydantic import BaseModel, HttpUrl, RootModel
+from pydantic import BaseModel, HttpUrl
 
 from .common import MoodleRawHttpUrl
 from .enums import Homepage

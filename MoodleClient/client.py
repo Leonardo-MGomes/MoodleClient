@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from . import services
 from .services.base import BaseService
 from .session import MoodleSession
@@ -8,7 +10,7 @@ class MoodleClient:
     course: services.CourseService
     webservice: services.WebServiceService
 
-    _service_classes: dict[str, type[BaseService]] = {}
+    _service_classes: ClassVar[dict[str, type[BaseService]]] = {}
     _registry_initialized: bool = False
 
     def __init__(self, session: MoodleSession):
