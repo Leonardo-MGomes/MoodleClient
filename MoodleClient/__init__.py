@@ -4,11 +4,10 @@ from .config import AppConfig
 from .session import MoodleSession
 
 __all__ = [
-    MoodleCredentials,
-    MoodleTokens,
-    MoodleTokenAuth,
-    MoodleClient,
-    MoodleSession,
-    AppConfig,
-    MoodleSession,
+    "AppConfig",
+    "MoodleClient",
+    "MoodleCredentials",
+    "MoodleSession",
+    "MoodleTokenAuth",
+    "MoodleTokens",
 ]
