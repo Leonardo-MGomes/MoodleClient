@@ -1,7 +1,7 @@
 import logging
 from typing import TypedDict
 
-from ..models.course import CheckUpdatesStructure, GetCategoriesStructure
+from ..models.course import CheckUpdatesStructure, GetCategoriesStructure, GetCoursesStructure
 from ..models.enums import CategoryCriteriaKey
 from .base import BaseService, auto_moodle_params
 
@@ -18,6 +18,9 @@ class CategoryCriteria(TypedDict):
     key: CategoryCriteriaKey
     value: str | int
 
+
+class CoursesOptions(TypedDict):
+    ids: list[int] | None
 
 class CourseService(BaseService):
     # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/course/externallib.php#L3506
@@ -50,3 +53,17 @@ class CourseService(BaseService):
             "core_course_get_categories", extra_params=data
         )
         return self._parse_response(response, GetCategoriesStructure)
+
+    # https://github.com/moodle/moodle/blob/MOODLE_502_STABLE/public/course/externallib.php#L683
+    # MOODLE_502_STABLE get_courses_parameters
+    @auto_moodle_params
+    async def get_courses(
+        self,
+        options: CoursesOptions | None = None,
+        data: dict | None = None,
+    ) -> GetCoursesStructure:
+        logger.info("Fetching Courses...")
+        response = await self.session.request(
+            "core_course_get_courses", extra_params=data
+        )
+        return self._parse_response(response, GetCoursesStructure)
