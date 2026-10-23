@@ -8,6 +8,7 @@ from .base import BaseService, auto_moodle_params
 logger = logging.getLogger(__name__)
 
 
+from .base import BaseService, auto_moodle_params
 class ToCheckItem(TypedDict):
     contextlevel: str
     id: int

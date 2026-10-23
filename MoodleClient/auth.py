@@ -1,87 +1,100 @@
 import logging
+import typing
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
+from typing import Protocol
+from urllib.parse import parse_qsl, urlencode
 
-from httpx import AsyncClient, HTTPStatusError, RequestError
+from httpx import (
+    AsyncClient,
+    Auth,
+    ByteStream,
+    HTTPStatusError,
+    Request,
+    RequestError,
+    Response,
+)
 
-from MoodleClient.config import DEFAULT_CONFIG, AppConfig
-from MoodleClient.exceptions import MoodleAuthError, MoodleNetworkError
+from .config import DEFAULT_CONFIG, AppConfig
+from .exceptions import MoodleAuthError, MoodleNetworkError
 
 logger = logging.getLogger(__name__)
 
 
+## Implementations
+### Dataclasses
 @dataclass(frozen=True)
-class MoodleCredentials:
+class Credentials:
     username: str
     password: str
 
-
-@dataclass(frozen=True)
-class MoodleTokens:
+@dataclass
+class MobileToken:
     token: str
     private_token: str | None = None
 
 
-class MoodleTokenAuth:
-    def __init__(
-        self,
-        http_client: AsyncClient,
-        token_data: MoodleTokens | None = None,
-        moodle_credentials: MoodleCredentials | None = None,
-        app_config: AppConfig | None = None,
-    ):
-        self.http = http_client
-        self.token_data = token_data
-        self.credentials = moodle_credentials
-        self.config = app_config or DEFAULT_CONFIG
-        self.base_url = self.config.BASE_URL
+## Protocols
+class TokenObject(Protocol):
+    token: str
 
-    @property
-    def token(self):
-        if self.token_data is None:
-            raise MoodleAuthError(
-                "No Moodle token is available. Please authenticate first."
-            )
-        return self.token_data.token
+class AuthProtocol(Protocol):
+    async def authenticate(self) -> TokenObject:
+        pass
 
-    @classmethod
-    def from_tokens(
-        cls,
-        http_client: AsyncClient,
-        token: str,
-        private_token: str | None = None,
-        **kwargs,
-    ) -> "MoodleTokenAuth":
-        return cls(
-            http_client=http_client,
-            token_data=MoodleTokens(token=token, private_token=private_token),
-            **kwargs,
-        )
 
-    @classmethod
-    def from_credentials(
-        cls, http_client: AsyncClient, username: str, password: str, **kwargs
-    ) -> "MoodleTokenAuth":
-        return cls(
-            http_client=http_client,
-            moodle_credentials=MoodleCredentials(username=username, password=password),
-            **kwargs,
-        )
+### Classes
+class TokenAuth(Auth):
+    def __init__(self, auth: AuthProtocol, token: TokenObject | None = None):
+        self.auth = auth
+        self.tokenObject = token
 
-    async def authenticate(self) -> MoodleTokens:
-        if self.credentials is None:
-            logger.error("No credentials provided for authentication")
-            raise MoodleAuthError("No credentials provided for authentication.")
+    def sync_auth_flow(self, request: Request) -> typing.Generator[Request, Response, None]:
+        raise RuntimeError("This auth object is strictly Async only.")
 
+    # TODO: This does not check whether it is still valid (Moodle returns 200 even on auth-failure)
+    async def async_auth_flow(self, request: Request) -> AsyncGenerator[Request, Response]:
+        if not self.tokenObject:
+            self.tokenObject = await self.auth.authenticate()
+
+        await self.inject_token(request)
+
+        yield request
+
+    async def inject_token(self, request: Request) -> Request:
+        body_bytes = request.read()
+
+        if body_bytes:
+            data = dict(parse_qsl(body_bytes.decode("utf-8")))
+            data["wstoken"] = self.tokenObject.token
+            new_bytes = urlencode(data).encode("utf-8")
+            
+            request.stream = ByteStream(new_bytes)
+            request.headers["Content-Length"] = str(len(new_bytes))
+
+        return request
+
+
+class MobileCredentialAuth:
+    def __init__(self, credentials: Credentials, http_client: AsyncClient | None = None, app_config: AppConfig | None = None):
+        self._credentials = credentials
+        self._client = http_client or AsyncClient()
+        self._app_config = app_config or DEFAULT_CONFIG
+        self._base_url = self._app_config.BASE_URL
+
+    async def authenticate(self) -> MobileToken:
         logger.info("Attempting to authenticate with Moodle...")
         data = {
-            "username": self.credentials.username,
-            "password": self.credentials.password,
+            "username": self._credentials.username,
+            "password": self._credentials.password,
             "service": "moodle_mobile_app",
         }
 
         try:
-            response = await self.http.post(
-                f"{self.base_url}/login/token.php", data=data
+            response = await self._client.post(
+                f"{self._base_url}/login/token.php",
+                data=data,
+                auth=None,
             )
             response.raise_for_status()
             response_content = response.json()
@@ -97,12 +110,11 @@ class MoodleTokenAuth:
                     f"Moodle authentication response missing 'token' key: {response_content}"
                 )
 
-            token_data = MoodleTokens(
+            token_data = MobileToken(
                 token=token,
                 private_token=private_token,
             )
 
-            self.token_data = token_data
             logger.info("Successfully authenticated with Moodle.")
             return token_data
 
