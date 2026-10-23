@@ -28,7 +28,8 @@ class Credentials:
     username: str
     password: str
 
-@dataclass
+
+@dataclass(frozen=True)
 class MobileToken:
     token: str
     private_token: str | None = None
@@ -37,6 +38,7 @@ class MobileToken:
 ## Protocols
 class TokenObject(Protocol):
     token: str
+
 
 class AuthProtocol(Protocol):
     async def authenticate(self) -> TokenObject:
@@ -49,11 +51,15 @@ class TokenAuth(Auth):
         self.auth = auth
         self.tokenObject = token
 
-    def sync_auth_flow(self, request: Request) -> typing.Generator[Request, Response, None]:
+    def sync_auth_flow(
+        self, request: Request
+    ) -> typing.Generator[Request, Response, None]:
         raise RuntimeError("This auth object is strictly Async only.")
 
     # TODO: This does not check whether it is still valid (Moodle returns 200 even on auth-failure)
-    async def async_auth_flow(self, request: Request) -> AsyncGenerator[Request, Response]:
+    async def async_auth_flow(
+        self, request: Request
+    ) -> AsyncGenerator[Request, Response]:
         if not self.tokenObject:
             self.tokenObject = await self.auth.authenticate()
 
@@ -68,7 +74,7 @@ class TokenAuth(Auth):
             data = dict(parse_qsl(body_bytes.decode("utf-8")))
             data["wstoken"] = self.tokenObject.token
             new_bytes = urlencode(data).encode("utf-8")
-            
+
             request.stream = ByteStream(new_bytes)
             request.headers["Content-Length"] = str(len(new_bytes))
 
@@ -76,7 +82,12 @@ class TokenAuth(Auth):
 
 
 class MobileCredentialAuth:
-    def __init__(self, credentials: Credentials, http_client: AsyncClient | None = None, app_config: AppConfig | None = None):
+    def __init__(
+        self,
+        credentials: Credentials,
+        http_client: AsyncClient | None = None,
+        app_config: AppConfig | None = None,
+    ):
         self._credentials = credentials
         self._client = http_client or AsyncClient()
         self._app_config = app_config or DEFAULT_CONFIG
