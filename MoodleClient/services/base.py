@@ -61,10 +61,26 @@ def _make_decorator(ignore: list[str] | None = None):
 
     return decorator
 
+def moodle_endpoint(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        function = f"core_{kwargs['self'].__class__.__name__[:-7]}_{func.__name__}".lower() # :-7 because Service is 7 chars long (e.g. BadgeService)
+        model = func.__annotations__["return"]
+        return await kwargs["self"]._call(function=function, model=model, data=kwargs["data"])
+    return wrapper
+
 
 class BaseService:
     def __init__(self, session: MoodleSession):
         self.session = session
+
+    async def _call(self, function: str, model: Type[T], data: dict | None = None) -> T:
+        logger.info(f"Running function '{function}' with data: {data or 'None'}")
+        response = await self.session.request(
+            function, extra_params=data
+        )
+        logger.info(f"Parsing response from function {function} through model {model.__name__}")
+        return self._parse_response(response, model)
 
     @staticmethod
     def _parse_response(response: Response, model: Type[T]) -> T:
