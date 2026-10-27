@@ -7,6 +7,10 @@ dependencies = [
     "pydantic[email]>=2.13.4",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Leonardo-MGomes/MoodleClient"
+Repository = "https://github.com/Leonardo-MGomes/MoodleClient.git"
+
 [dependency-groups]
 dev = [
     "ruff>=0.15.21",
