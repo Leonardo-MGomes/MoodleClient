@@ -63,10 +63,11 @@ def _make_decorator(ignore: list[str] | None = None):
 
 def moodle_endpoint(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
-        function = f"core_{kwargs['self'].__class__.__name__[:-7]}_{func.__name__}".lower() # :-7 because Service is 7 chars long (e.g. BadgeService)
+    async def wrapper(self, *args, **kwargs):
+        function = f"core_{self.__class__.__name__[:-7]}_{func.__name__}".lower() # :-7 because Service is 7 chars long (e.g. BadgeService)
         model = func.__annotations__["return"]
-        return await kwargs["self"]._call(function=function, model=model, data=kwargs["data"])
+        data = kwargs.get("data", None)
+        return await self._call(function=function, model=model, data=data)
     return wrapper
 
 
