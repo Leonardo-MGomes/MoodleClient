@@ -52,13 +52,13 @@ on your system:
 
 ```python
 import asyncio
-from MoodleClient import MoodleClient, MoodleCredentials, MoodleSession
+from MoodleClient import MoodleClient, Credentials, MoodleSession
 
 
 async def main():
     # Set up your login info and get a session going
     session = MoodleSession.from_credentials(
-        MoodleCredentials(username="student", password="securepassword")
+        Credentials(username="student", password="securepassword")
     )
     await session.moodle_auth.authenticate()
     client = MoodleClient(session)

@@ -2,9 +2,10 @@ import asyncio
 import logging
 from typing import Any
 
-from httpx import AsyncClient, HTTPStatusError, RequestError, Response
+from httpx import AsyncClient, Auth, HTTPStatusError, RequestError, Response
 
-from .auth import MoodleCredentials, MoodleTokenAuth, MoodleTokens
+from . import Credentials, MobileCredentialAuth
+from .auth import TokenAuth
 from .config import DEFAULT_CONFIG, AppConfig
 from .exceptions import MoodleApiError, MoodleNetworkError
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 class MoodleSession:
     def __init__(
         self,
-        moodle_auth: MoodleTokenAuth,
+        moodle_auth: Auth,
         http_client: AsyncClient | None = None,
         app_config: AppConfig | None = None,
     ):
@@ -23,7 +24,7 @@ class MoodleSession:
         self.http = http_client or AsyncClient(
             headers={"User-Agent": self.config.USER_AGENT}
         )
-        self.moodle_auth = moodle_auth
+        self.http.auth = moodle_auth
 
     async def __aenter__(self) -> "MoodleSession":
         return self
@@ -34,21 +35,19 @@ class MoodleSession:
     @classmethod
     def from_credentials(
         cls,
-        moodle_credentials: MoodleCredentials,
-        tokens: MoodleTokens | None = None,
+        credentials: Credentials,
         http_client: AsyncClient | None = None,
         app_config: AppConfig | None = None,
     ) -> "MoodleSession":
         session = cls(moodle_auth=None, http_client=http_client, app_config=app_config)
 
-        moodle_auth = MoodleTokenAuth(
+        moodle_auth = MobileCredentialAuth(
             http_client=session.http,
-            moodle_credentials=moodle_credentials,
-            token_data=tokens,
+            credentials=credentials,
             app_config=app_config,
         )
 
-        session.moodle_auth = moodle_auth
+        session.http.auth = TokenAuth(auth=moodle_auth)
         return session
 
     def _flatten_params(
@@ -84,7 +83,6 @@ class MoodleSession:
             f"Calling Moodle API function: {function} with params: {extra_params}"
         )
         data = {
-            "wstoken": self.moodle_auth.token,
             "wsfunction": function,
             "moodlewsrestformat": rest_format,
         }
